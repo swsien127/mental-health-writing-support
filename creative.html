@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Creative Writing Support</title>
+    <style>
+        body { font-family: Arial, sans-serif; display: flex; }
+        #chat, #story-editor { width: 50%; padding: 20px; }
+        #chat { background-color: #f0f0f0; }
+        #story-history { margin-top: 20px; }
+        textarea { width: 100%; height: 150px; }
+        button { margin-top: 10px; padding: 10px; }
+    </style>
+</head>
+<body>
+    <div id="chat">
+        <h2>Chat Feedback</h2>
+        <div id="chat-log"></div>
+        <textarea id="user-input" placeholder="Type your story here..."></textarea>
+        <button onclick="sendStory()">Submit Story</button>
+    </div>
+    <div id="story-editor">
+        <h2>Your Story</h2>
+        <div id="story-history"></div>
+        <button onclick="finishSession()">Finish</button>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        let storyHistory = "";
+
+        async function sendStory() {
+            const storyText = document.getElementById('user-input').value;
+            if (storyText.trim() === "") return;
+
+            storyHistory += `<p>${storyText}</p>`;
+            document.getElementById('story-history').innerHTML = storyHistory;
+            document.getElementById('user-input').value = "";
+
+            const feedback = await getFeedback(storyText, 'creative');
+            document.getElementById('chat-log').innerHTML += `<p><strong>ChatGPT:</strong> ${feedback}</p>`;
+        }
+
+        async function getFeedback(story, type) {
+            try {
+                const response = await axios.post('https://your-flask-app.herokuapp.com/api/get-feedback', { story: story, type: type });
+                return response.data.feedback;
+            } catch (error) {
+                return "Error getting feedback. Please try again.";
+            }
+        }
+
+        function finishSession() {
+            const blob = new Blob([storyHistory], { type: 'text/plain' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `creative_story_${new Date().toLocaleDateString()}.txt`;
+            link.click();
+        }
+    </script>
+</body>
+</html>

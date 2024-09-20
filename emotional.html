@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emotional Writing Support</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        textarea { width: 100%; height: 200px; }
+        button { margin-top: 10px; padding: 10px; }
+    </style>
+</head>
+<body>
+    <h2>Expressive Writing for Emotional Support</h2>
+    <textarea id="user-input" placeholder="Write your story here..."></textarea>
+    <button onclick="sendStory()">Submit Story</button>
+    <div id="chat-log"></div>
+    <button onclick="finishSession()">Finish</button>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        let storyHistory = "";
+
+        async function sendStory() {
+            const storyText = document.getElementById('user-input').value;
+            if (storyText.trim() === "") return;
+
+            const feedback = await getFeedback(storyText, 'emotional');
+            document.getElementById('chat-log').innerHTML += `<p><strong>ChatGPT:</strong> ${feedback}</p>`;
+        }
+
+        async function getFeedback(story, type) {
+            try {
+                const response = await axios.post('https://your-flask-app.herokuapp.com/api/get-feedback', { story: story, type: type });
+                return response.data.feedback;
+            } catch (error) {
+                return "Error getting feedback. Please try again.";
+            }
+        }
+
+        function finishSession() {
+            const blob = new Blob([storyHistory], { type: 'text/plain' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `emotional_story_${new Date().toLocaleDateString()}.txt`;
+            link.click();
+        }
+    </script>
+</body>
+</html>
